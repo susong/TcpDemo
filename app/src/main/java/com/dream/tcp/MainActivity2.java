@@ -3,7 +3,6 @@ package com.dream.tcp;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,10 +13,10 @@ import android.widget.ListView;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -30,7 +29,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity2 extends AppCompatActivity {
 
     private static final String TAG = "TcpDemo";
 
@@ -46,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> mClientMessageList;
     private ArrayAdapter<String> mServerMessageAdapter;
     private ArrayAdapter<String> mClientMessageAdapter;
+    private InputStream mInputStream;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,16 +132,22 @@ public class MainActivity extends AppCompatActivity {
     private int mServerPort;
     private String mServerSendMessage;
     private List<Socket> mSocketList = new ArrayList<>();
-    private List<ServerReceiveRunnable> mServerReceiveRunnableList = new ArrayList<>();
 
     class ServerSocketThread extends Thread {
         @Override
         public void run() {
             try {
                 ServerSocket serverSocket = new ServerSocket(mServerPort);
-                String logStart = getTime()
+                final String log = getTime()
                         + " 服务器已启动...";
-                logServer(logStart);
+                Log.d(TAG, log);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mServerMessageList.add(0, log);
+                        mServerMessageAdapter.notifyDataSetChanged();
+                    }
+                });
                 while (true) {
                     Socket socket = serverSocket.accept();
                     boolean isContain = false;
@@ -153,53 +159,50 @@ public class MainActivity extends AppCompatActivity {
                         }
                         index++;
                     }
-
                     if (isContain) {
-                        Log.d(TAG, "isContain");
-                        mServerReceiveRunnableList.remove(index).close();
                         mSocketList.remove(index);
+                        mSocketList.add(socket);
+                    } else {
+                        mSocketList.add(socket);
                     }
-                    mSocketList.add(socket);
-                    String logAccept = getTime()
+                    final String log2 = getTime()
                             + " 服务端地址：" + socket.getLocalAddress()
                             + " 客户端地址：" + socket.getInetAddress()
                             + " 新的客户端接入，当前客户端数：" + mSocketList.size();
-                    logServer(logAccept);
-                    ServerReceiveRunnable serverReceiveRunnable = new ServerReceiveRunnable(socket);
-                    new Thread(serverReceiveRunnable).start();
-                    mServerReceiveRunnableList.add(serverReceiveRunnable);
+                    Log.d(TAG, log2);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mServerMessageList.add(0, log2);
+                            mServerMessageAdapter.notifyDataSetChanged();
+                        }
+                    });
+                    ServerReceiveRunnable runnable = new ServerReceiveRunnable(socket);
+                    new Thread(runnable).start();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                String log = getTime()
+                final String log = getTime()
                         + " 服务端已经启动";
-                logServer(log);
+                Log.d(TAG, log);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mServerMessageList.add(0, log);
+                        mServerMessageAdapter.notifyDataSetChanged();
+                    }
+                });
             }
         }
     }
 
     class ServerReceiveRunnable implements Runnable {
 
-        private InetAddress mLocalAddress;//服务端地址
-        private InetAddress mInetAddress;//客户端地址
-        private boolean isContinue = true;
         private Socket socket;
         private BufferedReader in;
 
-        public void close() {
-            try {
-                socket.close();
-                in.close();
-                isContinue = false;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
         public ServerReceiveRunnable(Socket socket) {
             this.socket = socket;
-            mLocalAddress = socket.getLocalAddress();
-            mInetAddress = socket.getInetAddress();
             try {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 //客户端只要一连到服务器，便向客户端发送下面的信息。
@@ -212,16 +215,23 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            while (isContinue) {
-                try {
+            try {
+                while (true) {
                     String serverReceiverMessage;
                     if ((serverReceiverMessage = in.readLine()) != null) {
                         // 服务端接收到消息
-                        String logReceiver = getTime()
-                                + " 服务端地址：" + mLocalAddress
-                                + " 客户端地址：" + mInetAddress
+                        final String log = getTime()
+                                + " 服务端地址：" + socket.getLocalAddress()
+                                + " 客户端地址：" + socket.getInetAddress()
                                 + " 服务端收到消息：" + serverReceiverMessage;
-                        logServer(logReceiver);
+                        Log.d(TAG, log);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mServerMessageList.add(0, log);
+                                mServerMessageAdapter.notifyDataSetChanged();
+                            }
+                        });
                         if (serverReceiverMessage.equalsIgnoreCase("exit")) {
                             //当客户端发送的信息为：exit时，关闭连接
                             int size = mSocketList.size() - 1;
@@ -231,48 +241,26 @@ public class MainActivity extends AppCompatActivity {
                             mSocketList.remove(socket);
                             in.close();
                             socket.close();
-                            isContinue = false;
+                            break;
                         } else {
                             //服务端发送消息，给单个客户端自动回复
                             mServerSendMessage = serverReceiverMessage + "（服务器自动回复）";
-                            String logSend = getTime()
-                                    + " 服务端地址：" + mLocalAddress
-                                    + " 客户端地址：" + mInetAddress
+                            final String log2 = getTime()
+                                    + " 服务端地址：" + socket.getLocalAddress()
+                                    + " 客户端地址：" + socket.getInetAddress()
                                     + " 服务端发送消息：" + mServerSendMessage;
-                            logServer(logSend);
+                            Log.d(TAG, log2);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mServerMessageList.add(0, log2);
+                                    mServerMessageAdapter.notifyDataSetChanged();
+                                }
+                            });
                             PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
                             out.println(mServerSendMessage);
                         }
-                    } else {
-                        //客户端断开连接
-                        isContinue = false;
-                        String log = getTime()
-                                + " 服务端地址：" + mLocalAddress
-                                + " 客户端地址：" + mInetAddress
-                                + " 客户端断开连接";
-                        logServer(log);
                     }
-                } catch (IOException e) {
-                    isContinue = false;
-                    e.printStackTrace();
-                    String log = getTime()
-                            + " 服务端地址：" + mLocalAddress
-                            + " 客户端地址：" + mInetAddress
-                            + " 服务端连接超时";
-                    logServer(log);
-                }
-            }
-            try {
-                String log = getTime()
-                        + " 服务端地址：" + mLocalAddress
-                        + " 客户端地址：" + mInetAddress
-                        + " 关闭与客户端的连接";
-                logServer(log);
-                if (in != null) {
-                    in.close();
-                }
-                if (socket != null) {
-                    socket.close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -284,25 +272,20 @@ public class MainActivity extends AppCompatActivity {
      * 循环遍历客户端集合，给每个客户端都发送信息。
      */
     private void serverSendMessage() {
-        if (mServerSendMessage == null || mServerSendMessage.length() == 0) {
-            String log = getTime()
-                    + " 请输入内容";
-            logServer(log);
-            return;
-        }
-        if (mSocketList == null || mSocketList.size() == 0) {
-            String log = getTime()
-                    + " 没有连接中的客户端";
-            logServer(log);
-            return;
-        }
         for (int i = 0, size = mSocketList.size(); i < size; i++) {
             Socket socket = mSocketList.get(i);
-            String log = getTime()
+            final String log = getTime()
                     + " 服务端地址：" + socket.getLocalAddress()
                     + " 客户端地址：" + socket.getInetAddress()
                     + " 服务端发送消息：" + mServerSendMessage;
-            logServer(log);
+            Log.d(TAG, log);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mServerMessageList.add(0, log);
+                    mServerMessageAdapter.notifyDataSetChanged();
+                }
+            });
             PrintWriter out;
             try {
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
@@ -311,25 +294,6 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-    }
-
-    private void logServer(final String log) {
-        if (!isCurrentlyOnMainThread()) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    logServerReal(log);
-                }
-            });
-        } else {
-            logServerReal(log);
-        }
-    }
-
-    private void logServerReal(final String log) {
-        Log.d(TAG, log);
-        mServerMessageList.add(0, log);
-        mServerMessageAdapter.notifyDataSetChanged();
     }
 
     //=================================================================================
@@ -344,19 +308,18 @@ public class MainActivity extends AppCompatActivity {
     private String mClientSendMessage;
 
     class ClientSocketThread extends Thread {
-
         @Override
         public void run() {
             try {
                 mClientSocket = new Socket(mClientIp, mClientPort);
                 mClientIn = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream()));
                 mClientOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mClientSocket.getOutputStream())), true);
+
+                mInputStream = mClientSocket.getInputStream();
+
                 ClientReceiverRunnable runnable = new ClientReceiverRunnable(mClientSocket);
                 new Thread(runnable).start();
             } catch (IOException e) {
-                String log = getTime()
-                        + " 服务器没有开启";
-                logClient(log);
                 e.printStackTrace();
             }
         }
@@ -364,121 +327,87 @@ public class MainActivity extends AppCompatActivity {
 
     class ClientReceiverRunnable implements Runnable {
 
-        private InetAddress mInetAddress;
-        private InetAddress mLocalAddress;
-        private Socket socket;
+        Socket socket;
 
         public ClientReceiverRunnable(Socket socket) {
             this.socket = socket;
-            mInetAddress = socket.getInetAddress();//服务端地址
-            mLocalAddress = socket.getLocalAddress();//客户端地址
         }
 
         @Override
         public void run() {
-            boolean isContinue = true;
-            while (isContinue) {
-                try {
-                    if (socket != null && !socket.isClosed() && socket.isConnected() && !socket.isInputShutdown()) {
-                        String clientReceiverMessage;
-                        if ((clientReceiverMessage = mClientIn.readLine()) != null) {//服务器断开连接时，读取的内容为null，这与发送消息为“”不同
-                            // 客户端接收到消息
-                            String log = getTime()
-                                    + " 服务端地址：" + mInetAddress
-                                    + " 客户端地址：" + mLocalAddress
-                                    + " 客户端收到消息：" + clientReceiverMessage;
-                            logClient(log);
-                        } else {
-                            //服务端断开连接
-                            isContinue = false;
-                            String log = getTime()
-                                    + " 服务端地址：" + mInetAddress
-                                    + " 客户端地址：" + mLocalAddress
-                                    + " 服务器断开连接";
-                            logClient(log);
-                        }
-                    }
-                } catch (Exception e) {
-                    isContinue = false;
-                    e.printStackTrace();
-                    String log = getTime()
-                            + " 服务端地址：" + mInetAddress
-                            + " 客户端地址：" + mLocalAddress
-                            + " 客户端连接超时";
-                    logClient(log);
-                }
-            }
             try {
-                String log = getTime()
-                        + " 服务端地址：" + mInetAddress
-                        + " 客户端地址：" + mLocalAddress
-                        + " 客户端关闭连接";
-                logClient(log);
-                if (socket != null) {
-                    socket.close();
+
+                while (true) {
+                    byte[] bytes = "\n".getBytes();
+                    for (byte b : bytes) {
+                        Log.d(TAG, b + "");
+                    }
+                    Log.d(TAG, "ClientReceiver");
+                    if (socket != null && !socket.isClosed() && socket.isConnected() && !socket.isInputShutdown()) {
+//                        String clientReceiverMessage;
+//                        if ((clientReceiverMessage = mClientIn.readLine()) != null) {
+//                            // 客户端接收到消息
+//                            final String log = getTime()
+//                                    + " 服务端地址：" + socket.getInetAddress()
+//                                    + " 客户端地址：" + socket.getLocalAddress()
+//                                    + " 客户端收到消息：" + clientReceiverMessage;
+//                            Log.d(TAG, log);
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    mClientMessageList.add(0, log);
+//                                    mClientMessageAdapter.notifyDataSetChanged();
+//                                }
+//                            });
+//                        }
+                        Log.d(TAG, "准备接收消息");
+                        byte[] buf = new byte[1024];
+                        int len;
+                        StringBuilder sb = new StringBuilder();
+                        while ((len = mInputStream.read(buf)) != -1) {//len = -1 时，表示服务器已经断开连接
+                            Log.d(TAG, "接收到消息:" + len);
+                            sb.append(new String(buf, 0, len));
+                        }
+                        String clientReceiverMessage = sb.toString();
+                        Log.d(TAG, "接收到完整消息：" + clientReceiverMessage);
+                        if (clientReceiverMessage.length() != 0) {
+                            // 客户端接收到消息
+                            final String log = getTime()
+                                    + " 服务端地址：" + socket.getInetAddress()
+                                    + " 客户端地址：" + socket.getLocalAddress()
+                                    + " 客户端收到消息：" + clientReceiverMessage;
+                            Log.d(TAG, log);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mClientMessageList.add(0, log);
+                                    mClientMessageAdapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
+
+                    }
+                    Thread.sleep(1000);
                 }
-                if (mClientIn != null) {
-                    mClientIn.close();
-                }
-                if (mClientOut != null) {
-                    mClientOut.close();
-                }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
     private void clientSendMessage() {
-        if (mClientSendMessage == null || mClientSendMessage.length() == 0) {
-            String log = getTime()
-                    + " 请输入内容";
-            logClient(log);
-            return;
-        }
-        if (mClientSocket != null && mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()) {
-            String log = getTime()
-                    + " 服务端地址：" + mClientSocket.getInetAddress()
-                    + " 客户端地址：" + mClientSocket.getLocalAddress()
-                    + " 客户端发送消息：" + mClientSendMessage;
-            logClient(log);
-            mClientOut.println(mClientSendMessage);
-        } else {
-            String log = getTime()
-                    + " 客户端已经断开连接";
-            logClient(log);
-        }
-    }
-
-    private void logClient(final String log) {
-        if (!isCurrentlyOnMainThread()) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    logClientReal(log);
-                }
-            });
-        } else {
-            logClientReal(log);
-        }
-    }
-
-    private void logClientReal(final String log) {
+        String log = getTime()
+                + " 服务端地址：" + mClientSocket.getInetAddress()
+                + " 客户端地址：" + mClientSocket.getLocalAddress()
+                + " 客户端发送消息：" + mClientSendMessage;
         Log.d(TAG, log);
         mClientMessageList.add(0, log);
         mClientMessageAdapter.notifyDataSetChanged();
+        if (mClientSocket != null && mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()) {
+            mClientOut.println(mClientSendMessage);
+        }
     }
 
-    /**
-     * 判断当前线程是否在主线程
-     */
-    private boolean isCurrentlyOnMainThread() {
-        return Looper.myLooper() == Looper.getMainLooper();
-    }
-
-    /**
-     * 获取当前时间
-     */
     private String getTime() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss.SSS", Locale.CHINA);
         return format.format(new Date());
