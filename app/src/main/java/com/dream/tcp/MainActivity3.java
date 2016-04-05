@@ -46,6 +46,10 @@ public class MainActivity3 extends AppCompatActivity {
     private List<String> mClientMessageList;
     private ArrayAdapter<String> mServerMessageAdapter;
     private ArrayAdapter<String> mClientMessageAdapter;
+
+    private String mClientIp;
+    private int mClientPort;
+    private String mClientSendMessage;
     private String mInetAddress;
     private String mLocalAddress;
     private TcpClient mTcpClient;
@@ -382,124 +386,6 @@ public class MainActivity3 extends AppCompatActivity {
         mServerMessageList.add(0, log);
         mServerMessageAdapter.notifyDataSetChanged();
     }
-
-    //=================================================================================
-    // Client
-    //=================================================================================
-
-    private String mClientIp;
-    private int mClientPort;
-    //    private Socket mClientSocket;
-//    private BufferedReader mClientIn;
-//    private PrintWriter mClientOut;
-    private String mClientSendMessage;
-//
-//    class ClientSocketThread extends Thread {
-//
-//        @Override
-//        public void run() {
-//            try {
-//                mClientSocket = new Socket(mClientIp, mClientPort);
-//                mClientIn = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream()));
-//                mClientOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mClientSocket.getOutputStream())), true);
-//                ClientReceiverRunnable runnable = new ClientReceiverRunnable(mClientSocket);
-//                new Thread(runnable).start();
-//            } catch (IOException e) {
-//                String log = getTime()
-//                        + " 服务器没有开启";
-//                logClient(log);
-//                e.printStackTrace();
-//            }
-//        }
-//    }
-//
-//    class ClientReceiverRunnable implements Runnable {
-//
-//        private InetAddress mInetAddress;
-//        private InetAddress mLocalAddress;
-//        private Socket socket;
-//
-//        public ClientReceiverRunnable(Socket socket) {
-//            this.socket = socket;
-//            mInetAddress = socket.getInetAddress();//服务端地址
-//            mLocalAddress = socket.getLocalAddress();//客户端地址
-//        }
-//
-//        @Override
-//        public void run() {
-//            boolean isContinue = true;
-//            while (isContinue) {
-//                try {
-//                    if (socket != null && !socket.isClosed() && socket.isConnected() && !socket.isInputShutdown()) {
-//                        String clientReceiverMessage;
-//                        if ((clientReceiverMessage = mClientIn.readLine()) != null) {//服务器断开连接时，读取的内容为null，这与发送消息为“”不同
-//                            // 客户端接收到消息
-//                            String log = getTime()
-//                                    + " 服务端地址：" + mInetAddress
-//                                    + " 客户端地址：" + mLocalAddress
-//                                    + " 客户端收到消息：" + clientReceiverMessage;
-//                            logClient(log);
-//                        } else {
-//                            //服务端断开连接
-//                            isContinue = false;
-//                            String log = getTime()
-//                                    + " 服务端地址：" + mInetAddress
-//                                    + " 客户端地址：" + mLocalAddress
-//                                    + " 服务器断开连接";
-//                            logClient(log);
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                    isContinue = false;
-//                    e.printStackTrace();
-//                    String log = getTime()
-//                            + " 服务端地址：" + mInetAddress
-//                            + " 客户端地址：" + mLocalAddress
-//                            + " 客户端连接超时";
-//                    logClient(log);
-//                }
-//            }
-//            try {
-//                String log = getTime()
-//                        + " 服务端地址：" + mInetAddress
-//                        + " 客户端地址：" + mLocalAddress
-//                        + " 客户端关闭连接";
-//                logClient(log);
-//                if (socket != null) {
-//                    socket.close();
-//                }
-//                if (mClientIn != null) {
-//                    mClientIn.close();
-//                }
-//                if (mClientOut != null) {
-//                    mClientOut.close();
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
-//
-//    private void clientSendMessage() {
-//        if (mClientSendMessage == null || mClientSendMessage.length() == 0) {
-//            String log = getTime()
-//                    + " 请输入内容";
-//            logClient(log);
-//            return;
-//        }
-//        if (mClientSocket != null && mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()) {
-//            String log = getTime()
-//                    + " 服务端地址：" + mClientSocket.getInetAddress()
-//                    + " 客户端地址：" + mClientSocket.getLocalAddress()
-//                    + " 客户端发送消息：" + mClientSendMessage;
-//            logClient(log);
-//            mClientOut.println(mClientSendMessage);
-//        } else {
-//            String log = getTime()
-//                    + " 客户端已经断开连接";
-//            logClient(log);
-//        }
-//    }
 
     private void logClient(final String log) {
         if (!isCurrentlyOnMainThread()) {
