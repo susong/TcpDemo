@@ -34,18 +34,18 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "TcpDemo";
 
-    @Bind(R.id.ed_server_ip) EditText mEdServerIp;
-    @Bind(R.id.ed_server_port) EditText mEdServerPort;
-    @Bind(R.id.ed_server_send_message) EditText mEdServerSendMessage;
-    @Bind(R.id.lv_server_msg) ListView mLvServerMsg;
-    @Bind(R.id.ed_client_ip) EditText mEdClientIp;
-    @Bind(R.id.ed_client_port) EditText mEdClientPort;
-    @Bind(R.id.ed_client_send_message) EditText mEdClientSendMessage;
-    @Bind(R.id.lv_client_msg) ListView mLvClientMsg;
-    private List<String> mServerMessageList;
-    private List<String> mClientMessageList;
-    private ArrayAdapter<String> mServerMessageAdapter;
-    private ArrayAdapter<String> mClientMessageAdapter;
+    @Bind(R.id.ed_server_ip)           EditText             mEdServerIp;
+    @Bind(R.id.ed_server_port)         EditText             mEdServerPort;
+    @Bind(R.id.ed_server_send_message) EditText             mEdServerSendMessage;
+    @Bind(R.id.lv_server_msg)          ListView             mLvServerMsg;
+    @Bind(R.id.ed_client_ip)           EditText             mEdClientIp;
+    @Bind(R.id.ed_client_port)         EditText             mEdClientPort;
+    @Bind(R.id.ed_client_send_message) EditText             mEdClientSendMessage;
+    @Bind(R.id.lv_client_msg)          ListView             mLvClientMsg;
+    private                            List<String>         mServerMessageList;
+    private                            List<String>         mClientMessageList;
+    private                            ArrayAdapter<String> mServerMessageAdapter;
+    private                            ArrayAdapter<String> mClientMessageAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,13 +92,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick({
-            R.id.btn_start_server,
-            R.id.btn_server_send,
-            R.id.btn_server_clear_message,
-            R.id.btn_start_client,
-            R.id.btn_client_send,
-            R.id.btn_client_clear_message
-    })
+                     R.id.btn_start_server,
+                     R.id.btn_server_send,
+                     R.id.btn_server_clear_message,
+                     R.id.btn_start_client,
+                     R.id.btn_client_send,
+                     R.id.btn_client_clear_message
+             })
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_start_server:
@@ -129,9 +129,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private int mServerPort;
+    //=================================================================================
+    // Server
+    //=================================================================================
+
+    private int    mServerPort;
     private String mServerSendMessage;
-    private List<Socket> mSocketList = new ArrayList<>();
+    private List<Socket>                mSocketList                = new ArrayList<>();
     private List<ServerReceiveRunnable> mServerReceiveRunnableList = new ArrayList<>();
 
     class ServerSocketThread extends Thread {
@@ -140,12 +144,12 @@ public class MainActivity extends AppCompatActivity {
             try {
                 ServerSocket serverSocket = new ServerSocket(mServerPort);
                 String logStart = getTime()
-                        + " 服务器已启动...";
+                                  + " 服务器已启动...";
                 logServer(logStart);
                 while (true) {
-                    Socket socket = serverSocket.accept();
+                    Socket  socket    = serverSocket.accept();
                     boolean isContain = false;
-                    int index = 0;
+                    int     index     = 0;
                     for (Socket s : mSocketList) {
                         if (s.getInetAddress().equals(socket.getInetAddress())) {
                             isContain = true;
@@ -161,9 +165,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mSocketList.add(socket);
                     String logAccept = getTime()
-                            + " 服务端地址：" + socket.getLocalAddress()
-                            + " 客户端地址：" + socket.getInetAddress()
-                            + " 新的客户端接入，当前客户端数：" + mSocketList.size();
+                                       + " 服务端地址：" + socket.getLocalAddress()
+                                       + " 客户端地址：" + socket.getInetAddress()
+                                       + " 新的客户端接入，当前客户端数：" + mSocketList.size();
                     logServer(logAccept);
                     ServerReceiveRunnable serverReceiveRunnable = new ServerReceiveRunnable(socket);
                     new Thread(serverReceiveRunnable).start();
@@ -172,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
                 String log = getTime()
-                        + " 服务端已经启动";
+                             + " 服务端已经启动";
                 logServer(log);
             }
         }
@@ -183,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         private InetAddress mLocalAddress;//服务端地址
         private InetAddress mInetAddress;//客户端地址
         private boolean isContinue = true;
-        private Socket socket;
+        private Socket         socket;
         private BufferedReader in;
 
         public void close() {
@@ -218,15 +222,15 @@ public class MainActivity extends AppCompatActivity {
                     if ((serverReceiverMessage = in.readLine()) != null) {
                         // 服务端接收到消息
                         String logReceiver = getTime()
-                                + " 服务端地址：" + mLocalAddress
-                                + " 客户端地址：" + mInetAddress
-                                + " 服务端收到消息：" + serverReceiverMessage;
+                                             + " 服务端地址：" + mLocalAddress
+                                             + " 客户端地址：" + mInetAddress
+                                             + " 服务端收到消息：" + serverReceiverMessage;
                         logServer(logReceiver);
                         if (serverReceiverMessage.equalsIgnoreCase("exit")) {
                             //当客户端发送的信息为：exit时，关闭连接
                             int size = mSocketList.size() - 1;
                             mServerSendMessage = "客户端：" + socket.getInetAddress()
-                                    + " 退出，当前客户端数：" + size;
+                                                 + " 退出，当前客户端数：" + size;
                             serverSendMessage();
                             mSocketList.remove(socket);
                             in.close();
@@ -236,9 +240,9 @@ public class MainActivity extends AppCompatActivity {
                             //服务端发送消息，给单个客户端自动回复
                             mServerSendMessage = serverReceiverMessage + "（服务器自动回复）";
                             String logSend = getTime()
-                                    + " 服务端地址：" + mLocalAddress
-                                    + " 客户端地址：" + mInetAddress
-                                    + " 服务端发送消息：" + mServerSendMessage;
+                                             + " 服务端地址：" + mLocalAddress
+                                             + " 客户端地址：" + mInetAddress
+                                             + " 服务端发送消息：" + mServerSendMessage;
                             logServer(logSend);
                             PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
                             out.println(mServerSendMessage);
@@ -247,26 +251,26 @@ public class MainActivity extends AppCompatActivity {
                         //客户端断开连接
                         isContinue = false;
                         String log = getTime()
-                                + " 服务端地址：" + mLocalAddress
-                                + " 客户端地址：" + mInetAddress
-                                + " 客户端断开连接";
+                                     + " 服务端地址：" + mLocalAddress
+                                     + " 客户端地址：" + mInetAddress
+                                     + " 客户端断开连接";
                         logServer(log);
                     }
                 } catch (IOException e) {
                     isContinue = false;
                     e.printStackTrace();
                     String log = getTime()
-                            + " 服务端地址：" + mLocalAddress
-                            + " 客户端地址：" + mInetAddress
-                            + " 服务端连接超时";
+                                 + " 服务端地址：" + mLocalAddress
+                                 + " 客户端地址：" + mInetAddress
+                                 + " 服务端连接超时";
                     logServer(log);
                 }
             }
             try {
                 String log = getTime()
-                        + " 服务端地址：" + mLocalAddress
-                        + " 客户端地址：" + mInetAddress
-                        + " 关闭与客户端的连接";
+                             + " 服务端地址：" + mLocalAddress
+                             + " 客户端地址：" + mInetAddress
+                             + " 关闭与客户端的连接";
                 logServer(log);
                 if (in != null) {
                     in.close();
@@ -286,22 +290,22 @@ public class MainActivity extends AppCompatActivity {
     private void serverSendMessage() {
         if (mServerSendMessage == null || mServerSendMessage.length() == 0) {
             String log = getTime()
-                    + " 请输入内容";
+                         + " 请输入内容";
             logServer(log);
             return;
         }
         if (mSocketList == null || mSocketList.size() == 0) {
             String log = getTime()
-                    + " 没有连接中的客户端";
+                         + " 没有连接中的客户端";
             logServer(log);
             return;
         }
         for (int i = 0, size = mSocketList.size(); i < size; i++) {
             Socket socket = mSocketList.get(i);
             String log = getTime()
-                    + " 服务端地址：" + socket.getLocalAddress()
-                    + " 客户端地址：" + socket.getInetAddress()
-                    + " 服务端发送消息：" + mServerSendMessage;
+                         + " 服务端地址：" + socket.getLocalAddress()
+                         + " 客户端地址：" + socket.getInetAddress()
+                         + " 服务端发送消息：" + mServerSendMessage;
             logServer(log);
             PrintWriter out;
             try {
@@ -336,12 +340,12 @@ public class MainActivity extends AppCompatActivity {
     // Client
     //=================================================================================
 
-    private String mClientIp;
-    private int mClientPort;
-    private Socket mClientSocket;
+    private String         mClientIp;
+    private int            mClientPort;
+    private Socket         mClientSocket;
     private BufferedReader mClientIn;
-    private PrintWriter mClientOut;
-    private String mClientSendMessage;
+    private PrintWriter    mClientOut;
+    private String         mClientSendMessage;
 
     class ClientSocketThread extends Thread {
 
@@ -355,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(runnable).start();
             } catch (IOException e) {
                 String log = getTime()
-                        + " 服务器没有开启";
+                             + " 服务器没有开启";
                 logClient(log);
                 e.printStackTrace();
             }
@@ -366,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
 
         private InetAddress mInetAddress;
         private InetAddress mLocalAddress;
-        private Socket socket;
+        private Socket      socket;
 
         public ClientReceiverRunnable(Socket socket) {
             this.socket = socket;
@@ -384,17 +388,17 @@ public class MainActivity extends AppCompatActivity {
                         if ((clientReceiverMessage = mClientIn.readLine()) != null) {//服务器断开连接时，读取的内容为null，这与发送消息为“”不同
                             // 客户端接收到消息
                             String log = getTime()
-                                    + " 服务端地址：" + mInetAddress
-                                    + " 客户端地址：" + mLocalAddress
-                                    + " 客户端收到消息：" + clientReceiverMessage;
+                                         + " 服务端地址：" + mInetAddress
+                                         + " 客户端地址：" + mLocalAddress
+                                         + " 客户端收到消息：" + clientReceiverMessage;
                             logClient(log);
                         } else {
                             //服务端断开连接
                             isContinue = false;
                             String log = getTime()
-                                    + " 服务端地址：" + mInetAddress
-                                    + " 客户端地址：" + mLocalAddress
-                                    + " 服务器断开连接";
+                                         + " 服务端地址：" + mInetAddress
+                                         + " 客户端地址：" + mLocalAddress
+                                         + " 服务器断开连接";
                             logClient(log);
                         }
                     }
@@ -402,17 +406,17 @@ public class MainActivity extends AppCompatActivity {
                     isContinue = false;
                     e.printStackTrace();
                     String log = getTime()
-                            + " 服务端地址：" + mInetAddress
-                            + " 客户端地址：" + mLocalAddress
-                            + " 客户端连接超时";
+                                 + " 服务端地址：" + mInetAddress
+                                 + " 客户端地址：" + mLocalAddress
+                                 + " 客户端连接超时";
                     logClient(log);
                 }
             }
             try {
                 String log = getTime()
-                        + " 服务端地址：" + mInetAddress
-                        + " 客户端地址：" + mLocalAddress
-                        + " 客户端关闭连接";
+                             + " 服务端地址：" + mInetAddress
+                             + " 客户端地址：" + mLocalAddress
+                             + " 客户端关闭连接";
                 logClient(log);
                 if (socket != null) {
                     socket.close();
@@ -432,20 +436,20 @@ public class MainActivity extends AppCompatActivity {
     private void clientSendMessage() {
         if (mClientSendMessage == null || mClientSendMessage.length() == 0) {
             String log = getTime()
-                    + " 请输入内容";
+                         + " 请输入内容";
             logClient(log);
             return;
         }
         if (mClientSocket != null && mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()) {
             String log = getTime()
-                    + " 服务端地址：" + mClientSocket.getInetAddress()
-                    + " 客户端地址：" + mClientSocket.getLocalAddress()
-                    + " 客户端发送消息：" + mClientSendMessage;
+                         + " 服务端地址：" + mClientSocket.getInetAddress()
+                         + " 客户端地址：" + mClientSocket.getLocalAddress()
+                         + " 客户端发送消息：" + mClientSendMessage;
             logClient(log);
             mClientOut.println(mClientSendMessage);
         } else {
             String log = getTime()
-                    + " 客户端已经断开连接";
+                         + " 客户端已经断开连接";
             logClient(log);
         }
     }
@@ -489,13 +493,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private String getLocalIpAddress() {
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        WifiInfo    wifiInfo    = wifiManager.getConnectionInfo();
         // 获取32位整型IP地址
         int ipAddress = wifiInfo.getIpAddress();
 
         //返回整型地址转换成“*.*.*.*”地址
         return String.format("%d.%d.%d.%d",
-                (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+                             (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                             (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 }

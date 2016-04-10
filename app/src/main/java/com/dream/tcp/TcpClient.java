@@ -16,15 +16,15 @@ import java.net.Socket;
  * Description: TcpDemo
  */
 public class TcpClient {
-    private static final String TAG = "TcpClient";
-    private static TcpClient mTcpClient = new TcpClient();
+    private static final String    TAG        = "TcpClient";
+    private static       TcpClient mTcpClient = new TcpClient();
     private ClientSocketThread mClientSocketThread;
+    private OnConnectListener  mOnConnectListener;
 
     public static TcpClient getInstance() {
         return mTcpClient;
     }
 
-    private OnConnectListener mOnConnectListener;
 
     public void setOnConnectListener(OnConnectListener onConnectListener) {
         mOnConnectListener = onConnectListener;
@@ -120,12 +120,12 @@ public class TcpClient {
     // Client
     //=================================================================================
 
-    private String mClientIp;
-    private int mClientPort;
-    private Socket mClientSocket;
+    private String         mClientIp;
+    private int            mClientPort;
+    private Socket         mClientSocket;
     private BufferedReader mClientIn;
-    private PrintWriter mClientOut;
-    private String mClientSendMessage;
+    private PrintWriter    mClientOut;
+    private String         mClientSendMessage;
 
     class ClientSocketThread extends Thread {
 
@@ -211,7 +211,7 @@ public class TcpClient {
             return;
         }
         if (mClientSocket != null && mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()
-                && mClientOut != null) {
+            && mClientOut != null) {
             mClientOut.println(mClientSendMessage);
         } else {
             if (mOnConnectListener != null) {

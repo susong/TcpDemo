@@ -33,19 +33,19 @@ public class MainActivity2 extends AppCompatActivity {
 
     private static final String TAG = "TcpDemo";
 
-    @Bind(R.id.ed_server_ip) EditText mEdServerIp;
-    @Bind(R.id.ed_server_port) EditText mEdServerPort;
-    @Bind(R.id.ed_server_send_message) EditText mEdServerSendMessage;
-    @Bind(R.id.lv_server_msg) ListView mLvServerMsg;
-    @Bind(R.id.ed_client_ip) EditText mEdClientIp;
-    @Bind(R.id.ed_client_port) EditText mEdClientPort;
-    @Bind(R.id.ed_client_send_message) EditText mEdClientSendMessage;
-    @Bind(R.id.lv_client_msg) ListView mLvClientMsg;
-    private List<String> mServerMessageList;
-    private List<String> mClientMessageList;
-    private ArrayAdapter<String> mServerMessageAdapter;
-    private ArrayAdapter<String> mClientMessageAdapter;
-    private InputStream mInputStream;
+    @Bind(R.id.ed_server_ip)           EditText             mEdServerIp;
+    @Bind(R.id.ed_server_port)         EditText             mEdServerPort;
+    @Bind(R.id.ed_server_send_message) EditText             mEdServerSendMessage;
+    @Bind(R.id.lv_server_msg)          ListView             mLvServerMsg;
+    @Bind(R.id.ed_client_ip)           EditText             mEdClientIp;
+    @Bind(R.id.ed_client_port)         EditText             mEdClientPort;
+    @Bind(R.id.ed_client_send_message) EditText             mEdClientSendMessage;
+    @Bind(R.id.lv_client_msg)          ListView             mLvClientMsg;
+    private                            List<String>         mServerMessageList;
+    private                            List<String>         mClientMessageList;
+    private                            ArrayAdapter<String> mServerMessageAdapter;
+    private                            ArrayAdapter<String> mClientMessageAdapter;
+    private                            InputStream          mInputStream;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,13 +92,13 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     @OnClick({
-            R.id.btn_start_server,
-            R.id.btn_server_send,
-            R.id.btn_server_clear_message,
-            R.id.btn_start_client,
-            R.id.btn_client_send,
-            R.id.btn_client_clear_message
-    })
+                     R.id.btn_start_server,
+                     R.id.btn_server_send,
+                     R.id.btn_server_clear_message,
+                     R.id.btn_start_client,
+                     R.id.btn_client_send,
+                     R.id.btn_client_clear_message
+             })
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_start_server:
@@ -129,7 +129,7 @@ public class MainActivity2 extends AppCompatActivity {
         }
     }
 
-    private int mServerPort;
+    private int    mServerPort;
     private String mServerSendMessage;
     private List<Socket> mSocketList = new ArrayList<>();
 
@@ -139,7 +139,7 @@ public class MainActivity2 extends AppCompatActivity {
             try {
                 ServerSocket serverSocket = new ServerSocket(mServerPort);
                 final String log = getTime()
-                        + " 服务器已启动...";
+                                   + " 服务器已启动...";
                 Log.d(TAG, log);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -149,9 +149,9 @@ public class MainActivity2 extends AppCompatActivity {
                     }
                 });
                 while (true) {
-                    Socket socket = serverSocket.accept();
+                    Socket  socket    = serverSocket.accept();
                     boolean isContain = false;
-                    int index = 0;
+                    int     index     = 0;
                     for (Socket s : mSocketList) {
                         if (s.getInetAddress().equals(socket.getInetAddress())) {
                             isContain = true;
@@ -166,9 +166,9 @@ public class MainActivity2 extends AppCompatActivity {
                         mSocketList.add(socket);
                     }
                     final String log2 = getTime()
-                            + " 服务端地址：" + socket.getLocalAddress()
-                            + " 客户端地址：" + socket.getInetAddress()
-                            + " 新的客户端接入，当前客户端数：" + mSocketList.size();
+                                        + " 服务端地址：" + socket.getLocalAddress()
+                                        + " 客户端地址：" + socket.getInetAddress()
+                                        + " 新的客户端接入，当前客户端数：" + mSocketList.size();
                     Log.d(TAG, log2);
                     runOnUiThread(new Runnable() {
                         @Override
@@ -183,7 +183,7 @@ public class MainActivity2 extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
                 final String log = getTime()
-                        + " 服务端已经启动";
+                                   + " 服务端已经启动";
                 Log.d(TAG, log);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -198,7 +198,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     class ServerReceiveRunnable implements Runnable {
 
-        private Socket socket;
+        private Socket         socket;
         private BufferedReader in;
 
         public ServerReceiveRunnable(Socket socket) {
@@ -221,9 +221,9 @@ public class MainActivity2 extends AppCompatActivity {
                     if ((serverReceiverMessage = in.readLine()) != null) {
                         // 服务端接收到消息
                         final String log = getTime()
-                                + " 服务端地址：" + socket.getLocalAddress()
-                                + " 客户端地址：" + socket.getInetAddress()
-                                + " 服务端收到消息：" + serverReceiverMessage;
+                                           + " 服务端地址：" + socket.getLocalAddress()
+                                           + " 客户端地址：" + socket.getInetAddress()
+                                           + " 服务端收到消息：" + serverReceiverMessage;
                         Log.d(TAG, log);
                         runOnUiThread(new Runnable() {
                             @Override
@@ -236,7 +236,7 @@ public class MainActivity2 extends AppCompatActivity {
                             //当客户端发送的信息为：exit时，关闭连接
                             int size = mSocketList.size() - 1;
                             mServerSendMessage = "客户端：" + socket.getInetAddress()
-                                    + " 退出，当前客户端数：" + size;
+                                                 + " 退出，当前客户端数：" + size;
                             serverSendMessage();
                             mSocketList.remove(socket);
                             in.close();
@@ -246,9 +246,9 @@ public class MainActivity2 extends AppCompatActivity {
                             //服务端发送消息，给单个客户端自动回复
                             mServerSendMessage = serverReceiverMessage + "（服务器自动回复）";
                             final String log2 = getTime()
-                                    + " 服务端地址：" + socket.getLocalAddress()
-                                    + " 客户端地址：" + socket.getInetAddress()
-                                    + " 服务端发送消息：" + mServerSendMessage;
+                                                + " 服务端地址：" + socket.getLocalAddress()
+                                                + " 客户端地址：" + socket.getInetAddress()
+                                                + " 服务端发送消息：" + mServerSendMessage;
                             Log.d(TAG, log2);
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -275,9 +275,9 @@ public class MainActivity2 extends AppCompatActivity {
         for (int i = 0, size = mSocketList.size(); i < size; i++) {
             Socket socket = mSocketList.get(i);
             final String log = getTime()
-                    + " 服务端地址：" + socket.getLocalAddress()
-                    + " 客户端地址：" + socket.getInetAddress()
-                    + " 服务端发送消息：" + mServerSendMessage;
+                               + " 服务端地址：" + socket.getLocalAddress()
+                               + " 客户端地址：" + socket.getInetAddress()
+                               + " 服务端发送消息：" + mServerSendMessage;
             Log.d(TAG, log);
             runOnUiThread(new Runnable() {
                 @Override
@@ -300,12 +300,12 @@ public class MainActivity2 extends AppCompatActivity {
     // Client
     //=================================================================================
 
-    private String mClientIp;
-    private int mClientPort;
-    private Socket mClientSocket;
+    private String         mClientIp;
+    private int            mClientPort;
+    private Socket         mClientSocket;
     private BufferedReader mClientIn;
-    private PrintWriter mClientOut;
-    private String mClientSendMessage;
+    private PrintWriter    mClientOut;
+    private String         mClientSendMessage;
 
     class ClientSocketThread extends Thread {
         @Override
@@ -361,9 +361,9 @@ public class MainActivity2 extends AppCompatActivity {
 //                            });
 //                        }
                         Log.d(TAG, "准备接收消息");
-                        byte[] buf = new byte[1024];
-                        int len;
-                        StringBuilder sb = new StringBuilder();
+                        byte[]        buf = new byte[1024];
+                        int           len;
+                        StringBuilder sb  = new StringBuilder();
                         while ((len = mInputStream.read(buf)) != -1) {//len = -1 时，表示服务器已经断开连接
                             Log.d(TAG, "接收到消息:" + len);
                             sb.append(new String(buf, 0, len));
@@ -373,9 +373,9 @@ public class MainActivity2 extends AppCompatActivity {
                         if (clientReceiverMessage.length() != 0) {
                             // 客户端接收到消息
                             final String log = getTime()
-                                    + " 服务端地址：" + socket.getInetAddress()
-                                    + " 客户端地址：" + socket.getLocalAddress()
-                                    + " 客户端收到消息：" + clientReceiverMessage;
+                                               + " 服务端地址：" + socket.getInetAddress()
+                                               + " 客户端地址：" + socket.getLocalAddress()
+                                               + " 客户端收到消息：" + clientReceiverMessage;
                             Log.d(TAG, log);
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -397,9 +397,9 @@ public class MainActivity2 extends AppCompatActivity {
 
     private void clientSendMessage() {
         String log = getTime()
-                + " 服务端地址：" + mClientSocket.getInetAddress()
-                + " 客户端地址：" + mClientSocket.getLocalAddress()
-                + " 客户端发送消息：" + mClientSendMessage;
+                     + " 服务端地址：" + mClientSocket.getInetAddress()
+                     + " 客户端地址：" + mClientSocket.getLocalAddress()
+                     + " 客户端发送消息：" + mClientSendMessage;
         Log.d(TAG, log);
         mClientMessageList.add(0, log);
         mClientMessageAdapter.notifyDataSetChanged();
@@ -418,13 +418,13 @@ public class MainActivity2 extends AppCompatActivity {
      */
     private String getLocalIpAddress() {
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        WifiInfo    wifiInfo    = wifiManager.getConnectionInfo();
         // 获取32位整型IP地址
         int ipAddress = wifiInfo.getIpAddress();
 
         //返回整型地址转换成“*.*.*.*”地址
         return String.format("%d.%d.%d.%d",
-                (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+                             (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                             (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 }
