@@ -68,6 +68,13 @@ public class TcpClient {
         }
     }
 
+    public void connect(String ip, int port, OnConnectListener onConnectListener) {
+        mOnConnectListener = onConnectListener;
+        mClientIp = ip;
+        mClientPort = port;
+        connect();
+    }
+
     public void disconnect() {
         if (mOnConnectListener == null) {
             throw new RuntimeException("请设置OnConnectListener");
